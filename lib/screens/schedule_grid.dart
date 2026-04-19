@@ -5,6 +5,7 @@ class ScheduleGrid extends StatelessWidget {
   final List<Appointment> appointments;
   final Function(Appointment) onEdit;
   final Function(Appointment) onDelete;
+  final ScrollController? scrollController;
 
   final DateTime selectedDate;
 
@@ -13,6 +14,7 @@ class ScheduleGrid extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.selectedDate,
+    this.scrollController,
     super.key,
   });
 
@@ -36,6 +38,7 @@ class ScheduleGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
+          controller: scrollController,
           physics: const BouncingScrollPhysics(),
           child: SizedBox(
             height: 24 * hourHeight,
@@ -60,8 +63,8 @@ class ScheduleGrid extends StatelessWidget {
                       child: Text(
                         '${i.toString().padLeft(2, '0')}:00',
                         style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
+                          color: Color.fromARGB(255, 99, 99, 99),
+                          fontSize: 14,
                         ),
                       ),
                     );
@@ -86,7 +89,7 @@ class ScheduleGrid extends StatelessWidget {
                     height: height.clamp(30.0, double.infinity),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB( 255, 233, 113, 207,).withOpacity(0.85),
+                        color: const Color.fromRGBO(233, 113, 207, 0.85),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: const Color.fromARGB(255, 255, 72, 133),

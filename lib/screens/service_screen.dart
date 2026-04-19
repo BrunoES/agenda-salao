@@ -35,8 +35,14 @@ class _ServiceScreenState extends State<ServiceScreen> {
   void initState() {
     super.initState();
     load();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+  }
+
+  void load() async {
+    services = await ServiceTypeStorage.load();
+    if (!mounted) return;
+    setState(() {});
+
+    if (services.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -46,18 +52,15 @@ class _ServiceScreenState extends State<ServiceScreen> {
           backgroundColor: Colors.pinkAccent,
         ),
       );
-    });
-  }
-
-  void load() async {
-    services = await ServiceTypeStorage.load();
-    setState(() {});
+    }
   }
 
   void add() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    final bool wasEmpty = services.isEmpty;
 
     final newItem = ServiceType(
       id: DateTime.now().toString(),
@@ -77,6 +80,27 @@ class _ServiceScreenState extends State<ServiceScreen> {
         backgroundColor: Color.fromARGB(255, 114, 201, 140),
       ),
     );
+
+    if (wasEmpty && mounted) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Está pronto!'),
+            content: const Text(
+              'Agora você já pode voltar para a tela anterior para criar agendamentos :D, '
+              'ou aproveitar e cadastrar mais tipos de atendimento se preferir !',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   void delete(ServiceType item) async {

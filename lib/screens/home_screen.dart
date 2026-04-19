@@ -15,15 +15,31 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  final ScrollController _scrollController = ScrollController();
   List<Appointment> allAppointments = [];
   DateTime selectedDate = DateTime.now();
+  late final AnimationController _serviceIconController;
+  late final Animation<double> _serviceIconAnimation;
+  bool _highlightServiceButton = false;
+  bool _highlightAppointmentButton = false;
+  bool _firstAccess = false;
 
   @override
   void initState() {
     super.initState();
+    _serviceIconController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _serviceIconAnimation = CurvedAnimation(
+      parent: _serviceIconController,
+      curve: Curves.easeInOut,
+    );
     load();
     _checkFirstTime();
+    _updateButtonHighlights();
   }
 
   void _checkFirstTime() async {
@@ -31,10 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final isFirstTime = prefs.getBool('firstTime') ?? true;
 
     if (isFirstTime) {
-    //if (true) {
-      // 🔥 FORÇAR SEMPRE PARA TESTAR O TUTORIAL
-      // Aguarda um pouco para garantir que o contexto esteja pronto
+      _firstAccess = true;
+      _setButtonHighlight(service: true, appointment: false);
+
       Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
         _showTutorialDialog();
       });
       await prefs.setBool('firstTime', false);
@@ -50,9 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                Text('Para começar, toque no ícone "Tipos de atendimento" no topo da tela.'),
+                Text(
+                  'Para começar, toque no ícone "Tipos de atendimento" no topo da tela.',
+                ),
                 SizedBox(height: 12),
-                Text('Adicione tipos de atendimento como: Corte, Pintura, Manicure, depois é só criar agendamentos!'),
+                Text(
+                  'Adicione tipos de atendimento como: Corte, Pintura, Manicure, depois é só criar agendamentos!',
+                ),
                 SizedBox(height: 12),
                 Text('É tudo salvo no seu dispositivo :D!'),
               ],
@@ -70,10 +91,77 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void load() async {
-    allAppointments = await StorageService.load();
+    final data = await StorageService.load();
     setState(() {
-      selectedDate = selectedDate;
-      allAppointments = allAppointments;
+      allAppointments = data;
+    });
+    _updateButtonHighlights();
+  }
+
+  void _setButtonHighlight({required bool service, required bool appointment}) {
+    final shouldHighlight = service || appointment;
+    if (_highlightServiceButton == service &&
+        _highlightAppointmentButton == appointment)
+      return;
+
+    setState(() {
+      _highlightServiceButton = service;
+      _highlightAppointmentButton = appointment;
+    });
+
+    if (shouldHighlight) {
+      _serviceIconController.repeat(reverse: true);
+    } else {
+      _serviceIconController.stop();
+      _serviceIconController.value = 0.0;
+    }
+  }
+
+  void _updateButtonHighlights() async {
+    final services = await ServiceTypeStorage.load();
+    final appointments = await StorageService.load();
+    if (!mounted) return;
+
+    _setButtonHighlight(
+      service: _firstAccess || services.isEmpty,
+      appointment: services.isNotEmpty && appointments.isEmpty,
+    );
+
+    _firstAccess = false;
+  }
+
+  void _scrollToAppointment(Appointment appointment) {
+    final hourHeight = ScheduleGrid.hourHeight;
+    final minutesSinceSix =
+        (appointment.inicio.hour - 6) * 60 + appointment.inicio.minute;
+    final offset = (minutesSinceSix / 60) * hourHeight;
+
+    if (_scrollController.hasClients) {
+      final target = offset.clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _loadAndScrollTo(Appointment appointment) async {
+    final data = await StorageService.load();
+    setState(() {
+      selectedDate = DateTime(
+        appointment.inicio.year,
+        appointment.inicio.month,
+        appointment.inicio.day,
+      );
+      allAppointments = data;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToAppointment(appointment);
     });
   }
 
@@ -107,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void goToNew([Appointment? edit]) async {
+    final currentContext = context;
     // Verifica se há tipos de atendimento cadastrados
     final services = await ServiceTypeStorage.load();
     if (services.isEmpty) {
@@ -114,8 +203,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    await Navigator.push(
-      context,
+    // ignore: use_build_context_synchronously
+    final result = await Navigator.push<Appointment?>(
+      currentContext,
       MaterialPageRoute(
         builder: (_) => NewAppointmentScreen(
           existing: allAppointments,
@@ -124,12 +214,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    load();
+
+    if (!mounted) return;
+    _updateButtonHighlights();
+
+    if (result != null) {
+      _loadAndScrollTo(result);
+    } else {
+      load();
+    }
   }
 
   void deleteAppointment(Appointment appointment) async {
     await StorageService.delete(appointment.id);
     load();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _serviceIconController.dispose();
+    super.dispose();
   }
 
   @override
@@ -143,16 +248,33 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Agenda'),
         actions: [
           TextButton.icon(
-            icon: const Icon(Icons.add, size: 36, color: Color.fromARGB(255, 233, 113, 207)),
+            icon: AnimatedBuilder(
+              animation: _serviceIconAnimation,
+              builder: (context, child) {
+                final color = _highlightServiceButton
+                    ? Color.lerp(
+                        const Color.fromARGB(255, 233, 113, 207),
+                        const Color.fromARGB(255, 43, 255, 0),
+                        _serviceIconAnimation.value,
+                      )
+                    : const Color.fromARGB(255, 233, 113, 207);
+                return Icon(Icons.add, size: 48, color: color);
+              },
+            ),
             label: const Text(
               'Tipos de atendimento',
-              style: TextStyle(color: Color.fromARGB(255, 233, 113, 207), fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Color.fromARGB(255, 233, 113, 207),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => ServiceScreen()),
               );
+              _updateButtonHighlights();
             },
           ),
         ],
@@ -160,7 +282,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: () => goToNew(),
-        child: const Icon(Icons.add),
+        child: AnimatedBuilder(
+          animation: _serviceIconAnimation,
+          builder: (context, child) {
+            final color = _highlightAppointmentButton
+                ? Color.lerp(
+                    const Color.fromARGB(255, 233, 113, 207),
+                    const Color.fromARGB(255, 43, 255, 0),
+                    _serviceIconAnimation.value,
+                  )
+                : const Color.fromARGB(255, 233, 113, 207);
+            return Icon(Icons.add, size: 48, color: color);
+          },
+        ),
       ),
 
       // 🔥 CORREÇÃO PRINCIPAL: scroll global seguro
@@ -220,6 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectedDate: selectedDate,
                   onEdit: (a) => goToNew(a),
                   onDelete: (a) => deleteAppointment(a),
+                  scrollController: _scrollController,
                 ),
               ),
             ],
