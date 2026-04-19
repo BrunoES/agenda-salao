@@ -160,7 +160,7 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
     final time = await showTimePicker(
       context: currentContext,
       initialTime: TimeOfDay.fromDateTime(dataHora ?? DateTime.now()),
-      //initialEntryMode: TimePickerEntryMode.input, // 🔥 AQUI
+      initialEntryMode: TimePickerEntryMode.input, // 🔥 AQUI
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
