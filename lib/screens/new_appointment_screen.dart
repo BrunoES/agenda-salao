@@ -115,6 +115,17 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
 
     final lista = await StorageService.load();
 
+    if (dataHora!.hour < 6 || dataHora!.hour > 23 || (dataHora!.hour == 23 && dataHora!.minute > 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Aviso: esse horário pode ficar fora do campo visível na grade.',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+
     // 🔥 VALIDAÇÃO DE CONFLITO
     final conflito = StorageService.hasConflict(lista, novo);
 
@@ -133,6 +144,15 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
       await StorageService.add(novo);
 
       Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Horário marcado!',
+          ),
+          backgroundColor: Color.fromARGB(255, 114, 201, 140),
+        ),
+      );
     }
   }
 

@@ -10,10 +10,10 @@ class ServiceScreen extends StatefulWidget {
 }
 
 class _ServiceScreenState extends State<ServiceScreen> {
+  final _formKey = GlobalKey<FormState>();
   List<ServiceType> services = [];
 
   final nameCtrl = TextEditingController();
-  final durationCtrl = TextEditingController();
 
   int duracao = 60;
   final List<int> duracoes = [15, 30, 45, 60, 90, 120, 150, 180, 210, 240];
@@ -36,6 +36,7 @@ class _ServiceScreenState extends State<ServiceScreen> {
     super.initState();
     load();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -54,7 +55,9 @@ class _ServiceScreenState extends State<ServiceScreen> {
   }
 
   void add() async {
-    if (nameCtrl.text.isEmpty) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     final newItem = ServiceType(
       id: DateTime.now().toString(),
@@ -68,7 +71,12 @@ class _ServiceScreenState extends State<ServiceScreen> {
     nameCtrl.clear();
     setState(() {});
 
-    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tipo de atendimento adicionado!'),
+        backgroundColor: Color.fromARGB(255, 114, 201, 140),
+      ),
+    );
   }
 
   void delete(ServiceType item) async {
@@ -81,64 +89,68 @@ class _ServiceScreenState extends State<ServiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Tipos de Atendimento')),
-
       body: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nome do serviço (exemplo: Corte, Pintura, etc)',
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do serviço (exemplo: Corte, Pintura, etc)',
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Informe o nome do serviço'
+                    : null,
               ),
-            ),
-
-            DropdownButtonFormField<int>(
-              value: duracao,
-              decoration: const InputDecoration(
-                labelText: 'Duração - Quanto tempo geralmente leva?',
-              ),
-              items: duracoes.map((d) {
-                return DropdownMenuItem(
-                  value: d,
-                  child: Text(
-                    duracoesDescription.elementAt(duracoes.indexOf(d)),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  duracao = value!;
-                });
-              },
-            ),
-
-            const SizedBox(height: 10),
-
-            ElevatedButton(onPressed: add, child: const Text('Adicionar tipo')),
-
-            const SizedBox(height: 10),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: services.length,
-                itemBuilder: (_, i) {
-                  final s = services[i];
-
-                  return Card(
-                    child: ListTile(
-                      title: Text(s.nome),
-                      subtitle: Text('${s.duracaoPadrao} minutos'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => delete(s),
-                      ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: duracao,
+                decoration: const InputDecoration(
+                  labelText: 'Duração - Quanto tempo geralmente leva?',
+                ),
+                items: duracoes.map((d) {
+                  return DropdownMenuItem(
+                    value: d,
+                    child: Text(
+                      duracoesDescription.elementAt(duracoes.indexOf(d)),
                     ),
                   );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    duracao = value!;
+                  });
                 },
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: add,
+                child: const Text('Adicionar tipo'),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: services.length,
+                  itemBuilder: (_, i) {
+                    final s = services[i];
+
+                    return Card(
+                      child: ListTile(
+                        title: Text(s.nome),
+                        subtitle: Text('${s.duracaoPadrao} minutos'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => delete(s),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -30,8 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = prefs.getBool('firstTime') ?? true;
 
-    //if (isFirstTime) {
-    if (true) {
+    if (isFirstTime) {
+    //if (true) {
       // 🔥 FORÇAR SEMPRE PARA TESTAR O TUTORIAL
       // Aguarda um pouco para garantir que o contexto esteja pronto
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                Text('Para começar, toque no ícone '''' + Tipos de atendimento '''' no topo da tela.'),
+                Text('Para começar, toque no ícone "Tipos de atendimento" no topo da tela.'),
                 SizedBox(height: 12),
                 Text('Adicione tipos de atendimento como: Corte, Pintura, Manicure, depois é só criar agendamentos!'),
                 SizedBox(height: 12),
@@ -165,56 +165,65 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 🔥 CORREÇÃO PRINCIPAL: scroll global seguro
       body: SafeArea(
-        child: Column(
-          children: [
-            // 📅 controle de data fixo no topo
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () => changeDay(-1),
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-
-                  GestureDetector(
-                    onTap: pickDate,
-                    child: Column(
-                      children: [
-                        Text(
-                          format.format(selectedDate),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          "Selecionar data",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
+        child: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity! > 0) {
+              changeDay(-1);
+            } else if (details.primaryVelocity! < 0) {
+              changeDay(1);
+            }
+          },
+          child: Column(
+            children: [
+              // 📅 controle de data fixo no topo
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => changeDay(-1),
+                      icon: const Icon(Icons.arrow_back),
                     ),
-                  ),
 
-                  IconButton(
-                    onPressed: () => changeDay(1),
-                    icon: const Icon(Icons.arrow_forward),
-                  ),
-                ],
-              ),
-            ),
+                    GestureDetector(
+                      onTap: pickDate,
+                      child: Column(
+                        children: [
+                          Text(
+                            format.format(selectedDate),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text(
+                            "Selecionar data",
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
 
-            // 🔥 GRID ocupa espaço restante corretamente
-            Expanded(
-              child: ScheduleGrid(
-                allAppointments,
-                selectedDate: selectedDate,
-                onEdit: (a) => goToNew(a),
-                onDelete: (a) => deleteAppointment(a),
+                    IconButton(
+                      onPressed: () => changeDay(1),
+                      icon: const Icon(Icons.arrow_forward),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              // 🔥 GRID ocupa espaço restante corretamente
+              Expanded(
+                child: ScheduleGrid(
+                  allAppointments,
+                  selectedDate: selectedDate,
+                  onEdit: (a) => goToNew(a),
+                  onDelete: (a) => deleteAppointment(a),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
