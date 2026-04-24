@@ -7,6 +7,7 @@ import 'new_appointment_screen.dart';
 import 'service_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,6 +41,11 @@ class _HomeScreenState extends State<HomeScreen>
     load();
     _checkFirstTime();
     _updateButtonHighlights();
+    //_initNotifications();
+  }
+
+  Future<void> _initNotifications() async {
+    await NotificationService.initialize();
   }
 
   void _checkFirstTime() async {
@@ -101,8 +107,9 @@ class _HomeScreenState extends State<HomeScreen>
   void _setButtonHighlight({required bool service, required bool appointment}) {
     final shouldHighlight = service || appointment;
     if (_highlightServiceButton == service &&
-        _highlightAppointmentButton == appointment)
+        _highlightAppointmentButton == appointment) {
       return;
+    }
 
     setState(() {
       _highlightServiceButton = service;

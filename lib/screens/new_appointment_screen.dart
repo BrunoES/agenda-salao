@@ -4,6 +4,7 @@ import '../models/service_type.dart';
 import '../services/service_type_storage.dart';
 import '../services/storage_service.dart';
 import 'package:intl/intl.dart';
+import '../services/notification_service.dart';
 
 class NewAppointmentScreen extends StatefulWidget {
   final List<Appointment> existing;
@@ -139,9 +140,15 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
       // 🔥 SALVA DIRETO NO STORAGE
       await StorageService.add(novo);
 
-      if (!mounted) return;
+      await NotificationService.scheduleNotification(
+        title: 'Lembrete de Agendamento',
+        body: 'Você tem um agendamento para ${novo.servico} às ${DateFormat('HH:mm').format(novo.inicio)} com ${novo.cliente}.',
+        dateTime: novo.inicio.subtract(const Duration(minutes: 30)), // Lembrete 30 minutos antes
+      );
+
       // ignore: use_build_context_synchronously
       Navigator.pop(currentContext, novo);
+      if (!mounted) return;
     }
   }
 
