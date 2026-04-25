@@ -7,7 +7,7 @@ import 'new_appointment_screen.dart';
 import 'service_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/notification_service.dart';
+// import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,10 +44,12 @@ class _HomeScreenState extends State<HomeScreen>
     //_initNotifications();
   }
 
+  /*
   Future<void> _initNotifications() async {
     await NotificationService.initialize();
   }
-
+  */
+  
   void _checkFirstTime() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = prefs.getBool('firstTime') ?? true;
