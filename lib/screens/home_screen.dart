@@ -244,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen>
   final Color primaryPink = const Color.fromRGBO(233, 113, 207, 0.85);
 
   return Drawer(
-    backgroundColor: const Color.fromARGB(255, 253, 252, 237),
+    backgroundColor: const Color.fromARGB(255, 253, 253, 247),
     child: Column(
       children: [
         // Cabeçalho estilizado
@@ -262,6 +262,16 @@ class _HomeScreenState extends State<HomeScreen>
           onTap: () => Navigator.pop(context),
         ),
         
+        // Itens de Navegação
+        ListTile(
+          leading: Icon(Icons.settings, color: primaryPink),
+          title: const Text('Tipos de atendimento'),
+          onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ServiceScreen()),
+                      ).then((_) => _updateButtonHighlights()),
+        ),
+
         const Spacer(), // Empurra o logout para o final
         const Divider(),
 
@@ -334,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       */
 
-      backgroundColor: const Color.fromARGB(255, 253, 252, 237), // Seu Branco Creme
+      backgroundColor: const Color.fromARGB(255, 253, 253, 247), // Seu Branco Creme
     
       // Passo 1: Adicione o Drawer aqui
       drawer: _buildDrawer(context), 

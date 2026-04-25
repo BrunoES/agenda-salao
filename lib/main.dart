@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 253, 252, 237),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 253, 253, 247),
         useMaterial3: true,
       ),
       // Aqui acontece a mágica
@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
           // 1. Enquanto está buscando o dado (loading)
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
-              color: const Color.fromARGB(255, 253, 252, 237), // Branco creme
+              color: const Color.fromARGB(255, 253, 253, 247), // Branco creme
               child: Center(
                 child: Icon(Icons.calendar_month, size: 80, color: Color.fromRGBO(233, 113, 207, 0.85)),
               ),
@@ -114,7 +114,7 @@ class LandingPage extends StatelessWidget {
 
   // Cor principal definida (RGB 233, 113, 207 com 85% opacidade)
   Color get primaryPink => Color.fromRGBO(233, 113, 207, 0.85);
-  Color get creamWhite => const Color.fromARGB(255, 248, 248, 238);
+  Color get creamWhite => const Color.fromARGB(255, 253, 253, 247);
 
   @override
   Widget build(BuildContext context) {

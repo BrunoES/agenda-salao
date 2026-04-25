@@ -29,7 +29,7 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
 
   // Mantendo o padrão de cores da Landing Page
   final Color primaryPink = const Color.fromRGBO(233, 113, 207, 0.85);
-  final Color creamWhite = const Color(0xFFFFFDD0);
+  final Color creamWhite = const Color.fromARGB(255, 253, 253, 247);
 
   @override
   void initState() {

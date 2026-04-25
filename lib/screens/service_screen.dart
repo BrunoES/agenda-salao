@@ -48,7 +48,7 @@ class _ServiceScreenState extends State<ServiceScreen> {
           content: Text(
             'Crie tipos de atendimento, como: Pintura, Corte, Manicure pé, mãos, etc. Depois, ao criar um agendamento, escolha o tipo para preencher a duração automaticamente! :)',
           ),
-          duration: Duration(seconds: 11),
+          duration: Duration(seconds: 7),
           backgroundColor: Colors.pinkAccent,
         ),
       );
