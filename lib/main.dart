@@ -4,6 +4,7 @@ import 'screens/home_screen.dart';
 import 'screens/business_setup_business.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/token_storage_service.dart';
 // import 'services/notification_service.dart';
 
 void main() async {
@@ -58,14 +59,53 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 253, 252, 237), // Branco Creme
+        scaffoldBackgroundColor: const Color.fromARGB(255, 253, 252, 237),
         useMaterial3: true,
       ),
-      home: const LandingPage(),
+      // Aqui acontece a mágica
+      home: FutureBuilder<String?>(
+        future: TokenStorageService().getToken(), // Chama o método assíncrono
+        builder: (context, snapshot) {
+          
+          // 1. Enquanto está buscando o dado (loading)
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              color: const Color.fromARGB(255, 253, 252, 237), // Branco creme
+              child: Center(
+                child: Icon(Icons.calendar_month, size: 80, color: Color.fromRGBO(233, 113, 207, 0.85)),
+              ),
+            );
+          }
+
+          // 2. Se encontrou um token (usuário já logado/configurado)
+          if (snapshot.hasData && snapshot.data != null) {
+            // Se o token existe, mandamos para o Dashboard (ou tela interna)
+            return const HomeScreen(); 
+          }
+
+          // 3. Se não encontrou nada ou deu erro, vai para a Landing Page
+          return const LandingPage();
+        },
+      ),
     );
+    
+    /*
+    final storage = TokenStorageService();
+    final isAuthenticated = storage.getToken().then(
+      (token) => {
+        print('Token recuperado: $token'),
+        if(token != null) {
+          true
+        } else {
+          false
+        }
+      }
+    );
+    */
   }
 }
 

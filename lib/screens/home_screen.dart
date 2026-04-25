@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/appointment.dart';
 import '../services/storage_service.dart';
 import '../services/service_type_storage.dart';
+import '../services/token_storage_service.dart';
 import '../screens/schedule_grid.dart';
 import 'new_appointment_screen.dart';
 import 'service_screen.dart';
@@ -239,6 +240,48 @@ class _HomeScreenState extends State<HomeScreen>
     load();
   }
 
+  Widget _buildDrawer(BuildContext context) {
+  final Color primaryPink = const Color.fromRGBO(233, 113, 207, 0.85);
+
+  return Drawer(
+    backgroundColor: const Color.fromARGB(255, 253, 252, 237),
+    child: Column(
+      children: [
+        // Cabeçalho estilizado
+        DrawerHeader(
+          decoration: BoxDecoration(color: primaryPink),
+          child: const Center(
+            child: Icon(Icons.business, size: 50, color: Colors.white),
+          ),
+        ),
+        
+        // Itens de Navegação
+        ListTile(
+          leading: Icon(Icons.home, color: primaryPink),
+          title: const Text('Início'),
+          onTap: () => Navigator.pop(context),
+        ),
+        
+        const Spacer(), // Empurra o logout para o final
+        const Divider(),
+
+        // Botão de Logout
+        ListTile(
+          leading: const Icon(Icons.logout, color: Colors.redAccent),
+          title: const Text('Sair', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          onTap: () async {
+            // Limpa o token e volta para a tela de login
+            await TokenStorageService().clearToken();
+            if (!context.mounted) return;
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          },
+        ),
+        const SizedBox(height: 20),
+      ],
+    ),
+  );
+}
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -253,6 +296,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       resizeToAvoidBottomInset: true, // 🔥 evita quebra com teclado
 
+      /*
       appBar: AppBar(
         title: const Text('Agenda'),
         actions: [
@@ -287,6 +331,19 @@ class _HomeScreenState extends State<HomeScreen>
             },
           ),
         ],
+      ),
+      */
+
+      backgroundColor: const Color.fromARGB(255, 253, 252, 237), // Seu Branco Creme
+    
+      // Passo 1: Adicione o Drawer aqui
+      drawer: _buildDrawer(context), 
+      
+      // Passo 2: Garanta que haja uma AppBar para o ícone aparecer
+      appBar: AppBar(
+        title: const Text('Início'),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Color.fromRGBO(233, 113, 207, 0.85)),
       ),
 
       floatingActionButton: FloatingActionButton(

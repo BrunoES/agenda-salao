@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:agenda_salao/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../services/database_service.dart';
@@ -60,7 +61,13 @@ class _BusinessSetupPageState extends State<BusinessSetupPage> {
         _emailController.text, // Gerando um email fictício
       ).then((_) {
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        // Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+        );
       });
       
     } on PostgrestException catch (error) {
